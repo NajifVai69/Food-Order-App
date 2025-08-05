@@ -8,21 +8,31 @@ import connectDB from "./utils/db.js"
 import restaurantRoutes from './routes/restaurantRoutes.js';
 import ratingRoutes from './routes/ratingRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import { errorHandler } from "./middlewares/errorHandler.js"
+
+dotenv.config({})
 
 const app=express()
 app.use(express.json())
 
-app.use(express.urlencoded({extended:true}))
-const corsOptions={
-    origin: 'http//localhost:1484',
-    credentials: true
-}
+
+const corsOptions = {
+    origin: ['http://localhost:1484', 'http://localhost:3000'], // FIXED: Added colon after http
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
 app.use(cors(corsOptions))
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
-dotenv.config({})
 
+app.use((req, res, next) => {
+    console.log(`📝 ${req.method} ${req.path}`);
+    console.log('📦 Body:', req.body);
+    console.log('📋 Content-Type:', req.headers['content-type']);
+    next();
+});
 // API Routes
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/ratings', ratingRoutes);

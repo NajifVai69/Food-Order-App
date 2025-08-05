@@ -13,6 +13,15 @@ const generateToken = (id) => {
 // @access  Public
 export const registerUser = async (req, res) => {
   try {
+    console.log('📦 Request body received:', req.body); // Debug log
+    
+    // Check if req.body exists and has required fields
+    if (!req.body) {
+      return res.status(400).json({
+        success: false,
+        message: 'Request body is missing'
+      });
+    }
     const { name, email, phone, password, address } = req.body;
     
     // Check if user already exists
