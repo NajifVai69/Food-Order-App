@@ -1,8 +1,8 @@
-import Restaurant from '../models/restaurantModel.js';
 import Rating from '../models/ratingModel.js';
-import mongoose from 'mongoose'
+import Restaurant from '../models/restaurantModel.js';
+import mongoose from 'mongoose';
 
-// @desc    Create new rating for a restaurant
+// @desc    Create new rating
 // @route   POST /api/ratings
 // @access  Private
 export const createRating = async (req, res) => {
@@ -11,10 +11,21 @@ export const createRating = async (req, res) => {
   
   try {
     const { restaurant, foodItems, overallRating, review, experience } = req.body;
-    const userId = req.user.id; // Assuming user is authenticated
+    const userId = req.user._id;
     
-    // Check if restaurant exists
-    const restaurantDoc = await Restaurant.findById(restaurant);
+    if (!mongoose.Types.ObjectId.isValid(restaurant)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid restaurant ID format'
+      });
+    }
+    
+    const restaurantDoc = await Restaurant.findOne({ 
+      _id: restaurant, 
+      isActive: true 
+    }).session(session);
+    
     if (!restaurantDoc) {
       await session.abortTransaction();
       return res.status(404).json({
@@ -23,26 +34,32 @@ export const createRating = async (req, res) => {
       });
     }
     
-    // Check if user already rated this restaurant
-    const existingRating = await Rating.findOne({ restaurant, user: userId });
+    const existingRating = await Rating.findOne({ 
+      restaurant, 
+      user: userId 
+    }).session(session);
+    
     if (existingRating) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
-        message: 'You have already rated this restaurant. Use update instead.'
+        message: 'You have already rated this restaurant'
       });
     }
     
-    // Create new rating
-    const rating = new Rating({
+    const ratingData = {
       restaurant,
       user: userId,
-      foodItems,
       overallRating,
-      review,
-      experience
-    });
+      review: review || '',
+      experience: experience || {}
+    };
     
+    if (foodItems && foodItems.length > 0) {
+      ratingData.foodItems = foodItems;
+    }
+    
+    const rating = new Rating(ratingData);
     await rating.save({ session });
     
     // Update restaurant's average rating
@@ -50,9 +67,8 @@ export const createRating = async (req, res) => {
     
     await session.commitTransaction();
     
-    // Populate the response
     await rating.populate([
-      { path: 'restaurant', select: 'name' },
+      { path: 'restaurant', select: 'name cuisine' },
       { path: 'user', select: 'name email' }
     ]);
     
@@ -77,14 +93,14 @@ export const createRating = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while creating rating',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   } finally {
     session.endSession();
   }
 };
 
-// @desc    Get all ratings for a restaurant
+// @desc    Get restaurant ratings
 // @route   GET /api/ratings/restaurant/:restaurantId
 // @access  Public
 export const getRestaurantRatings = async (req, res) => {
@@ -92,42 +108,103 @@ export const getRestaurantRatings = async (req, res) => {
     const { restaurantId } = req.params;
     const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
-    // Build sort object
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid restaurant ID format'
+      });
+    }
+    
+    const query = { restaurant: restaurantId };
     const sort = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
     
-    // Calculate pagination
-    const skip = (page - 1) * limit;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
     
-    // Get ratings
-    const ratings = await Rating.find({ restaurant: restaurantId })
+    const ratings = await Rating.find(query)
       .populate('user', 'name')
       .select('-__v')
       .sort(sort)
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
     
-    const total = await Rating.countDocuments({ restaurant: restaurantId });
+    const total = await Rating.countDocuments(query);
     
-    // Get rating statistics
+    // FIXED: Get rating statistics with proper ObjectId constructor
     const stats = await Rating.aggregate([
-      { $match: { restaurant: mongoose.Types.ObjectId(restaurantId) } },
+      { $match: { restaurant: new mongoose.Types.ObjectId(restaurantId) } }, // FIXED: Added 'new'
       {
         $group: {
           _id: null,
           averageRating: { $avg: '$overallRating' },
           totalRatings: { $sum: 1 },
+          avgFood: { $avg: '$experience.food' },
+          avgService: { $avg: '$experience.service' },
+          avgDelivery: { $avg: '$experience.delivery' },
           ratingDistribution: {
-            $push: {
-              $switch: {
-                branches: [
-                  { case: { $eq: ['$overallRating', 5] }, then: '5-star' },
-                  { case: { $eq: ['$overallRating', 4] }, then: '4-star' },
-                  { case: { $eq: ['$overallRating', 3] }, then: '3-star' },
-                  { case: { $eq: ['$overallRating', 2] }, then: '2-star' },
-                  { case: { $eq: ['$overallRating', 1] }, then: '1-star' }
-                ],
-                default: 'other'
+            $push: '$overallRating'
+          }
+        }
+      },
+      {
+        $project: {
+          averageRating: { $round: ['$averageRating', 1] },
+          totalRatings: 1,
+          avgFood: { $round: ['$avgFood', 1] },
+          avgService: { $round: ['$avgService', 1] },
+          avgDelivery: { $round: ['$avgDelivery', 1] },
+          ratingDistribution: {
+            $let: {
+              vars: {
+                ratings: '$ratingDistribution'
+              },
+              in: {
+                '5-star': {
+                  $size: {
+                    $filter: {
+                      input: '$$ratings',
+                      as: 'rating',
+                      cond: { $eq: ['$$rating', 5] }
+                    }
+                  }
+                },
+                '4-star': {
+                  $size: {
+                    $filter: {
+                      input: '$$ratings',
+                      as: 'rating',
+                      cond: { $eq: ['$$rating', 4] }
+                    }
+                  }
+                },
+                '3-star': {
+                  $size: {
+                    $filter: {
+                      input: '$$ratings',
+                      as: 'rating',
+                      cond: { $eq: ['$$rating', 3] }
+                    }
+                  }
+                },
+                '2-star': {
+                  $size: {
+                    $filter: {
+                      input: '$$ratings',
+                      as: 'rating',
+                      cond: { $eq: ['$$rating', 2] }
+                    }
+                  }
+                },
+                '1-star': {
+                  $size: {
+                    $filter: {
+                      input: '$$ratings',
+                      as: 'rating',
+                      cond: { $eq: ['$$rating', 1] }
+                    }
+                  }
+                }
               }
             }
           }
@@ -142,30 +219,33 @@ export const getRestaurantRatings = async (req, res) => {
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil(total / parseInt(limit)),
+        hasNextPage: parseInt(page) < Math.ceil(total / parseInt(limit)),
+        hasPrevPage: parseInt(page) > 1
       },
-      statistics: stats[0] || { averageRating: 0, totalRatings: 0 },
+      statistics: stats[0] || { 
+        averageRating: 0, 
+        totalRatings: 0,
+        avgFood: 0,
+        avgService: 0,
+        avgDelivery: 0,
+        ratingDistribution: {
+          '5-star': 0, '4-star': 0, '3-star': 0, '2-star': 0, '1-star': 0
+        }
+      },
       data: ratings
     });
   } catch (error) {
     console.error('Get restaurant ratings error:', error);
-    
-    if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid restaurant ID format'
-      });
-    }
-    
     res.status(500).json({
       success: false,
       message: 'Server error while fetching ratings',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
 
-// @desc    Update user's rating for a restaurant
+// @desc    Update rating
 // @route   PUT /api/ratings/:id
 // @access  Private
 export const updateRating = async (req, res) => {
@@ -174,36 +254,54 @@ export const updateRating = async (req, res) => {
   
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.user._id;
     const { foodItems, overallRating, review, experience } = req.body;
     
-    // Find rating and verify ownership
-    const rating = await Rating.findOne({ _id: id, user: userId });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rating ID format'
+      });
+    }
+    
+    const rating = await Rating.findOne({ 
+      _id: id, 
+      user: userId 
+    }).session(session);
+    
     if (!rating) {
       await session.abortTransaction();
       return res.status(404).json({
         success: false,
-        message: 'Rating not found or you are not authorized to update it'
+        message: 'Rating not found or unauthorized'
       });
     }
     
-    // Update rating
+    const updateData = {
+      overallRating,
+      review: review || rating.review,
+      experience: experience || rating.experience
+    };
+    
+    if (foodItems) {
+      updateData.foodItems = foodItems;
+    }
+    
     const updatedRating = await Rating.findByIdAndUpdate(
       id,
-      { foodItems, overallRating, review, experience },
+      updateData,
       {
         new: true,
         runValidators: true,
         session
       }
     ).populate([
-      { path: 'restaurant', select: 'name' },
+      { path: 'restaurant', select: 'name cuisine' },
       { path: 'user', select: 'name email' }
     ]);
     
-    // Update restaurant's average rating
     await updateRestaurantRating(rating.restaurant, session);
-    
     await session.commitTransaction();
     
     res.status(200).json({
@@ -214,34 +312,17 @@ export const updateRating = async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     console.error('Update rating error:', error);
-    
-    if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid rating ID format'
-      });
-    }
-    
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: messages
-      });
-    }
-    
     res.status(500).json({
       success: false,
       message: 'Server error while updating rating',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   } finally {
     session.endSession();
   }
 };
 
-// @desc    Delete user's rating
+// @desc    Delete rating
 // @route   DELETE /api/ratings/:id
 // @access  Private
 export const deleteRating = async (req, res) => {
@@ -250,26 +331,33 @@ export const deleteRating = async (req, res) => {
   
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.user._id;
     
-    // Find rating and verify ownership
-    const rating = await Rating.findOne({ _id: id, user: userId });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid rating ID format'
+      });
+    }
+    
+    const rating = await Rating.findOne({ 
+      _id: id, 
+      user: userId 
+    }).session(session);
+    
     if (!rating) {
       await session.abortTransaction();
       return res.status(404).json({
         success: false,
-        message: 'Rating not found or you are not authorized to delete it'
+        message: 'Rating not found or unauthorized'
       });
     }
     
     const restaurantId = rating.restaurant;
     
-    // Delete rating
     await Rating.findByIdAndDelete(id, { session });
-    
-    // Update restaurant's average rating
     await updateRestaurantRating(restaurantId, session);
-    
     await session.commitTransaction();
     
     res.status(200).json({
@@ -279,47 +367,42 @@ export const deleteRating = async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     console.error('Delete rating error:', error);
-    
-    if (error.name === 'CastError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid rating ID format'
-      });
-    }
-    
     res.status(500).json({
       success: false,
       message: 'Server error while deleting rating',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   } finally {
     session.endSession();
   }
 };
 
-// Helper function to update restaurant's average rating
-export const updateRestaurantRating = async (restaurantId, session) => {
-  const ratingStats = await Rating.aggregate([
-    { $match: { restaurant: mongoose.Types.ObjectId(restaurantId) } },
-    {
-      $group: {
-        _id: null,
-        averageRating: { $avg: '$overallRating' },
-        totalRatings: { $sum: 1 }
+// FIXED: Helper function to update restaurant rating
+const updateRestaurantRating = async (restaurantId, session) => {
+  try {
+    const ratingStats = await Rating.aggregate([
+      { $match: { restaurant: new mongoose.Types.ObjectId(restaurantId) } }, // FIXED: Added 'new'
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: '$overallRating' },
+          totalRatings: { $sum: 1 }
+        }
       }
-    }
-  ]).session(session);
-  
-  const stats = ratingStats[0] || { averageRating: 0, totalRatings: 0 };
-  
-  await Restaurant.findByIdAndUpdate(
-    restaurantId,
-    {
-      'rating.average': Math.round(stats.averageRating * 10) / 10, // Round to 1 decimal
-      'rating.totalRatings': stats.totalRatings
-    },
-    { session }
-  );
+    ]).session(session);
+    
+    const stats = ratingStats[0] || { averageRating: 0, totalRatings: 0 };
+    
+    await Restaurant.findByIdAndUpdate(
+      restaurantId,
+      {
+        'rating.average': Math.round(stats.averageRating * 10) / 10,
+        'rating.totalRatings': stats.totalRatings
+      },
+      { session }
+    );
+  } catch (error) {
+    console.error('Error updating restaurant rating:', error);
+    throw error;
+  }
 };
-
-
