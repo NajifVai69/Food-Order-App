@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import api from '../api';
-
-
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +13,7 @@ const Login = () => {
   });
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const { setUserAfterLogin } = useUser();
 
   const { identifier, password, rememberMe } = formData;
 
@@ -30,6 +30,10 @@ const Login = () => {
     try {
       const res = await api.post('/auth/login', formData);
       setMessage('Login successful! Redirecting...');
+      
+      // Set user in context after successful login
+      setUserAfterLogin(res.data.user);
+      
       // Redirect to dashboard on successful login
       setTimeout(() => {
         navigate('/dashboard');

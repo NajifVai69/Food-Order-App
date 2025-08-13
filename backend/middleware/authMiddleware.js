@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
-const authMiddleware = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     //token from cookies (as set in your login function)
     const token = req.cookies.token;
@@ -29,4 +29,5 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-export default authMiddleware;
+export { protect };
+export default protect;
