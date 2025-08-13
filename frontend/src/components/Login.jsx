@@ -1,6 +1,5 @@
 
 
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -77,7 +76,7 @@ const Login = () => {
 
           <button type="submit">Login</button>
         </form>
-        <div className="form-alt-link" style={{ marginTop: '1.2rem', textAlign: 'center', fontSize: '1rem', color: '#222' }}>
+        <div className="form-alt-link" style={{ marginTop: '1.2rem', textAlign: 'center', fontSize: '1rem', color: '#ffffffff' }}>
           Don't have an account?{' '}
           <Link to="/register" style={{ color: '#3730a3', fontWeight: 700, textDecoration: 'underline' }}>Register</Link>
         </div>

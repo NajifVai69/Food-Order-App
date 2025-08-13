@@ -1,17 +1,16 @@
-
 import dotenv from 'dotenv';
-dotenv.config();
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
+import profileRoutes from './routes/profile.js'; // Add this import
 
+dotenv.config();
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -20,6 +19,12 @@ app.use(cors({
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes); 
+
+// Basic route for testing
+app.get('/', (req, res) => {
+  res.json({ message: 'Food Ordering API is running!' });
+});
 
 const PORT = process.env.PORT || 5000;
 
