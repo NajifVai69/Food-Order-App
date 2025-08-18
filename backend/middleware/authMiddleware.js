@@ -29,5 +29,13 @@ const protect = async (req, res, next) => {
   }
 };
 
-export { protect };
-export default protect;
+// Middleware to check if user is admin
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.userType === 'Admin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access denied. Admins only.' });
+  }
+};
+
+export { protect, isAdmin };

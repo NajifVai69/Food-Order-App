@@ -97,6 +97,15 @@ A comprehensive food ordering application with advanced user management and auth
    ```
 
 ## API Endpoints
+### Restaurant Management (Customer/Owner)
+- `GET /api/restaurants` - Browse restaurants (public/customer)
+- `POST /api/restaurants` - Add restaurant (owner)
+- `DELETE /api/restaurants/:id` - Delete restaurant (owner)
+
+### Admin Restaurant Management
+- `GET /api/manage-restaurants` - List all restaurants (admin only)
+- `POST /api/manage-restaurants` - Add a restaurant (admin only)
+- `DELETE /api/manage-restaurants/:id` - Delete a restaurant (admin only)
 
 ### Authentication
 - `POST /auth/register` - User registration
