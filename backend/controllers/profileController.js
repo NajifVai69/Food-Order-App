@@ -233,6 +233,7 @@ const deleteDeliveryAddress = async (req, res) => {
 };
 
 // Add menu item (Owner only)
+// Add menu item (Owner only)
 const addMenuItem = async (req, res) => {
   try {
     if (req.user.userType !== 'Owner') {
@@ -250,16 +251,26 @@ const addMenuItem = async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    user.menuItems.push({
+    // ✅ FIX: Initialize menuItems array if it doesn't exist
+    if (!user.menuItems) {
+      user.menuItems = [];
+    }
+
+    const newMenuItem = {
       name,
       description,
       price: parseFloat(price),
       category,
       image: image || '',
       isAvailable: true
-    });
+    };
 
+    user.menuItems.push(newMenuItem);
     await user.save();
 
     res.json({
@@ -272,6 +283,7 @@ const addMenuItem = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 // Update menu item (Owner only)
 const updateMenuItem = async (req, res) => {
