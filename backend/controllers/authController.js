@@ -401,6 +401,19 @@ const getReferralInfo = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// Get all users with userType 'Owner'
+export const getAllOwners = async (req, res) => {
+  try {
+    // Optionally restrict to admin only:
+    if (req.user.userType !== 'Admin') {
+      return res.status(403).json({ message: 'Access denied. Admins only.' });
+    }
+    const owners = await User.find({ userType: 'Owner' }, '_id name email');
+    res.json({ owners });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 export { 
   registerUser, 
@@ -413,5 +426,5 @@ export {
   getActivityLogs,
   deactivateAccount,
   deleteAccount,
-  getReferralInfo
+  getReferralInfo,
 };

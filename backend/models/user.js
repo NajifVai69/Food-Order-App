@@ -175,17 +175,7 @@ const userSchema = new mongoose.Schema({
     default: 'English'
   },
   
-  // Owner specific fields
-  restaurantName: {
-    type: String,
-    default: ''
-  },
-  restaurantDescription: {
-    type: String,
-    default: ''
-  },
-  menuItems: [menuItemSchema],
-  restaurantLocation: addressSchema,
+
   
   // Profile completion status
   isProfileComplete: {

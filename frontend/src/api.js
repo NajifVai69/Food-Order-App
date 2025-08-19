@@ -27,4 +27,40 @@ api.interceptors.response.use(
   }
 );
 
+// Restaurant API functions
+export const restaurantApi = {
+  // Get all restaurants (existing)
+  getRestaurants: (params) => api.get('/restaurants', { params }),
+  
+  // Get restaurant details with menu and ratings
+  getRestaurantDetails: (id) => api.get(`/restaurants/${id}`),
+  
+  // Rating system
+  submitRating: (id, data) => api.post(`/restaurants/${id}/rate`, data),
+  getUserRating: (id) => api.get(`/restaurants/${id}/my-rating`),
+  deleteRating: (id) => api.delete(`/restaurants/${id}/my-rating`),
+  getRestaurantRatings: (id, params) => api.get(`/restaurants/${id}/ratings`, { params })
+};
+  // Get all owners for assign owner dropdown
+export const getAllOwners = () => api.get('/auth/owners');
+
+// Assign owner to a restaurant (admin only)
+export const assignRestaurantOwner = (restaurantId, ownerId) =>
+  api.post('/restaurants/assign-owner', { restaurantId, ownerId });
+
+// Add these restaurant management functions
+export const restaurantManagementApi = {
+  // Get restaurants assigned to owner
+  getAssignedRestaurants: () => api.get('/restaurant-management/assigned'),
+  
+  // Update restaurant info
+  updateRestaurantInfo: (restaurantId, data) => api.put(`/restaurant-management/${restaurantId}`, data),
+  
+  // Menu management
+  addMenuItem: (restaurantId, data) => api.post(`/restaurant-management/${restaurantId}/menu-items`, data),
+  updateMenuItem: (restaurantId, itemId, data) => api.put(`/restaurant-management/${restaurantId}/menu-items/${itemId}`, data),
+  deleteMenuItem: (restaurantId, itemId) => api.delete(`/restaurant-management/${restaurantId}/menu-items/${itemId}`)
+};
+
+
 export default api;

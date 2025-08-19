@@ -4,6 +4,7 @@ import { useUser } from '../context/UserContext';
 import LoadingSpinner from './common/LoadingSpinner';
 import RestaurantBrowser from './RestaurantBrowser';
 import AdminRestaurantManager from './AdminRestaurantManager';
+import OwnerDashboard from './Owner/OwnerDashboard';
 
 const Dashboard = () => {
   const { user, loading, logout } = useUser();
@@ -89,15 +90,14 @@ const Dashboard = () => {
                     </div>
                   </Link>
                   
-                  <div className="action-card disabled">
-                    <div className="action-icon">📊</div>
-                    <div className="action-info">
-                      <h4>Orders & Analytics</h4>
-                      <p>View incoming orders and statistics</p>
-                      <span className="coming-soon">Coming Soon</span>
-                    </div>
+                  <div>
+                    <OwnerDashboard/>
+
                   </div>
+                
                 </>
+                
+
               )}
 
               {user.userType === 'Admin' && (

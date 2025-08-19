@@ -10,7 +10,8 @@ import {
   getActivityLogs,
   deactivateAccount,
   deleteAccount,
-  getReferralInfo
+  getReferralInfo,
+  getAllOwners
 } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -28,6 +29,8 @@ router.post('/verify-phone-otp', verifyPhoneOTP);
 router.post('/verify-email-otp', verifyEmailOTP);
 
 // Protected routes
+router.get('/owners', protect, getAllOwners);
+
 router.get('/activity-logs', protect, getActivityLogs);
 router.post('/deactivate-account', protect, deactivateAccount);
 router.post('/delete-account', protect, deleteAccount);

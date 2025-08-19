@@ -7,7 +7,7 @@ import authRoutes from './routes/auth.js';
 import restaurantRoutes from './routes/restaurant.js';
 import manageRestaurantRoutes from './routes/manageRestaurant.js';
 import profileRoutes from './routes/profile.js'; // Add this import
-
+import restaurantManagementRoutes from './routes/restaurantManagement.js';
 dotenv.config();
 const app = express();
 
@@ -24,6 +24,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/manage-restaurants', manageRestaurantRoutes);
 app.use('/api/profile', profileRoutes); 
+
+
+// Add this line with other route imports
+app.use('/api/restaurant-management', restaurantManagementRoutes);
+
 
 // Basic route for testing
 app.get('/', (req, res) => {
