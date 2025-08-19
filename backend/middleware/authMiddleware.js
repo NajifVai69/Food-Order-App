@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
-const authMiddleware = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     //token from cookies (as set in your login function)
     const token = req.cookies.token;
@@ -29,4 +29,13 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-export default authMiddleware;
+// Middleware to check if user is admin
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.userType === 'Admin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access denied. Admins only.' });
+  }
+};
+
+export { protect, isAdmin };

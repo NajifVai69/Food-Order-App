@@ -6,6 +6,8 @@ import ProfileNav from './ProfileNav';
 import BasicProfile from './BasicProfile'
 import AddressManager from './AddressManager';
 import MenuManager from './MenuManager';
+import ActivityLogs from './ActivityLogs';
+import AccountSettings from './AccountSettings';
 
 const ProfilePage = () => {
   const { user, loading, logout } = useUser();
@@ -41,6 +43,10 @@ const ProfilePage = () => {
         return <AddressManager />;
       case 'menu':
         return <MenuManager />;
+      case 'activity':
+        return <ActivityLogs />;
+      case 'settings':
+        return <AccountSettings />;
       default:
         return <BasicProfile />;
     }
@@ -61,6 +67,10 @@ const ProfilePage = () => {
                 {user.email && <span>📧 {user.email}</span>}
                 {user.phone && <span>📱 {user.phone}</span>}
               </p>
+              <div className="verification-status">
+                {user.isPhoneVerified && <span className="verified">✅ Phone Verified</span>}
+                {user.isEmailVerified && <span className="verified">✅ Email Verified</span>}
+              </div>
             </div>
           </div>
           

@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
+import restaurantRoutes from './routes/restaurant.js';
+import manageRestaurantRoutes from './routes/manageRestaurant.js';
 import profileRoutes from './routes/profile.js'; // Add this import
 
 dotenv.config();
@@ -19,6 +21,8 @@ app.use(cors({
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/manage-restaurants', manageRestaurantRoutes);
 app.use('/api/profile', profileRoutes); 
 
 // Basic route for testing

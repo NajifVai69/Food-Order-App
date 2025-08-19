@@ -9,12 +9,12 @@ import {
   updateMenuItem,
   deleteMenuItem
 } from '../controllers/profileController.js';
-import authMiddleware from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Apply auth middleware to all profile routes
-router.use(authMiddleware);
+router.use(protect);
 
 // Common profile routes for all user types
 router.get('/', getProfile);              // GET /api/profile - Get user profile

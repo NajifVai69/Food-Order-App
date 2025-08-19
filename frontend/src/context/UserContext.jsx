@@ -13,7 +13,7 @@ export const UserProvider = ({ children }) => {
       const response = await api.get('/profile');
       setUser(response.data.user);
     } catch (error) {
-      console.log('User not authenticated');
+      console.log('User not authenticated:', error.message);
       setUser(null);
     } finally {
       setLoading(false);
@@ -25,12 +25,22 @@ export const UserProvider = ({ children }) => {
     setUser(updatedUser);
   };
 
-  // Logout user
-  const logout = () => {
-    const response =api.post('/auth/logout');
-    setUser(null);
+  // Set user after successful login
+  const setUserAfterLogin = (userData) => {
+    setUser(userData);
     setLoading(false);
-    // Clear any stored tokens/cookies if needed
+  };
+
+  // Logout user
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.log('Logout error:', error.message);
+    } finally {
+      setUser(null);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -41,6 +51,7 @@ export const UserProvider = ({ children }) => {
     user,
     loading,
     updateUser,
+    setUserAfterLogin,
     logout,
     fetchProfile
   };

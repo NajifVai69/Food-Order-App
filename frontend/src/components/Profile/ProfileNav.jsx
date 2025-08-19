@@ -8,7 +8,9 @@ const ProfileNav = ({ activeTab, setActiveTab, user }) => {
     ] : []),
     ...(user?.userType === 'Owner' ? [
       { id: 'menu', label: 'Menu Items', icon: '🍽️' }
-    ] : [])
+    ] : []),
+    { id: 'activity', label: 'Activity Logs', icon: '📊' },
+    { id: 'settings', label: 'Account Settings', icon: '⚙️' }
   ];
 
   return (

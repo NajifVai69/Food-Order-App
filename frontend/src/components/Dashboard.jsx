@@ -2,12 +2,12 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import LoadingSpinner from './common/LoadingSpinner';
+import RestaurantBrowser from './RestaurantBrowser';
+import AdminRestaurantManager from './AdminRestaurantManager';
 
 const Dashboard = () => {
   const { user, loading, logout } = useUser();
   const navigate = useNavigate();
-
-  
 
   const handleLogout = () => {
     logout();
@@ -73,13 +73,8 @@ const Dashboard = () => {
                     </div>
                   </Link>
                   
-                  <div className="action-card disabled">
-                    <div className="action-icon">🛒</div>
-                    <div className="action-info">
-                      <h4>Browse Restaurants</h4>
-                      <p>Find and order from local restaurants</p>
-                      <span className="coming-soon">Coming Soon</span>
-                    </div>
+                  <div style={{width: '100%'}}>
+                    <RestaurantBrowser />
                   </div>
                 </>
               )}
@@ -107,23 +102,13 @@ const Dashboard = () => {
 
               {user.userType === 'Admin' && (
                 <>
-                  <div className="action-card disabled">
+                  <Link to="/manage-restaurants" className="action-card">
                     <div className="action-icon">🏪</div>
                     <div className="action-info">
                       <h4>Manage Restaurants</h4>
-                      <p>Oversee all restaurant operations</p>
-                      <span className="coming-soon">Coming Soon</span>
+                      <p>Add or delete restaurants and set their location</p>
                     </div>
-                  </div>
-                  
-                  <div className="action-card disabled">
-                    <div className="action-icon">👥</div>
-                    <div className="action-info">
-                      <h4>User Management</h4>
-                      <p>Manage customers and owners</p>
-                      <span className="coming-soon">Coming Soon</span>
-                    </div>
-                  </div>
+                  </Link>
                 </>
               )}
             </div>
