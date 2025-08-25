@@ -214,6 +214,11 @@ const BasicProfile = () => {
         {message && (
           <p className={`message ${message.includes('success') ? 'success' : 'error'}`}>
             {message}
+            {message.includes('Failed to update profile') && user?.userType === 'Owner' && (
+              <span style={{ display: 'block', marginTop: 8, color: 'var(--color-error)' }}>
+                If you are an owner and your restaurant info is not saving, please contact support or check your assignment status.
+              </span>
+            )}
           </p>
         )}
       </form>

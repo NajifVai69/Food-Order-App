@@ -18,7 +18,8 @@ const RestaurantMenuManager = () => {
     price: '',
     category: '',
     image: '',
-    isAvailable: true
+    isAvailable: true,
+    stock: ''
   });
 
   const categories = [
@@ -64,7 +65,8 @@ const RestaurantMenuManager = () => {
       price: '',
       category: '',
       image: '',
-      isAvailable: true
+      isAvailable: true,
+      stock: ''
     });
     setEditingItem(null);
     setShowAddForm(false);
@@ -81,14 +83,14 @@ const RestaurantMenuManager = () => {
     }
 
     try {
+      const submitData = { ...formData, stock: parseInt(formData.stock) };
       if (editingItem) {
-        await restaurantManagementApi.updateMenuItem(restaurantId, editingItem, formData);
+        await restaurantManagementApi.updateMenuItem(restaurantId, editingItem, submitData);
         setMessage('Menu item updated successfully!');
       } else {
-        await restaurantManagementApi.addMenuItem(restaurantId, formData);
+        await restaurantManagementApi.addMenuItem(restaurantId, submitData);
         setMessage('Menu item added successfully!');
       }
-      
       fetchRestaurantData();
       resetForm();
     } catch (error) {
@@ -103,7 +105,8 @@ const RestaurantMenuManager = () => {
       price: item.price.toString(),
       category: item.category,
       image: item.image || '',
-      isAvailable: item.isAvailable
+      isAvailable: item.isAvailable,
+      stock: item.stock?.toString() || ''
     });
     setEditingItem(item._id);
     setShowAddForm(true);
@@ -133,8 +136,19 @@ const RestaurantMenuManager = () => {
     }
   };
 
+
   if (loading) return <LoadingSpinner />;
-  if (!restaurant) return null;
+  if (!restaurant) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-1)' }}>
+        <div className="card" style={{ padding: 32, textAlign: 'center' }}>
+          <h2>Restaurant Not Found</h2>
+          <p>The restaurant you are trying to manage was not found or you do not have access.</p>
+          <a href="/dashboard" className="btn-primary">Back to Dashboard</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="menu-manager" style={{ 
@@ -230,11 +244,21 @@ const RestaurantMenuManager = () => {
                       </p>
                       
                       <div style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'var(--space-12)',
                         fontSize: 'var(--font-size-lg)', 
                         fontWeight: 'var(--font-weight-bold)',
                         color: 'var(--color-success)'
                       }}>
-                        ৳{item.price}
+                        <span>৳{item.price}</span>
+                        <span style={{
+                          fontSize: 'var(--font-size-sm)',
+                          fontWeight: 'normal',
+                          color: 'var(--color-text-secondary)'
+                        }}>
+                          Stock: {item.stock}
+                        </span>
                       </div>
                     </div>
 
@@ -328,6 +352,18 @@ const RestaurantMenuManager = () => {
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     placeholder="Describe your dish, ingredients, cooking style..."
                     rows="3"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Stock (Quantity Available) *</label>
+                  <input
+                    type="number"
+                    name="stock"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                    placeholder="e.g., 10"
+                    min="0"
                     required
                   />
                 </div>

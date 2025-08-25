@@ -6,8 +6,11 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
 import restaurantRoutes from './routes/restaurant.js';
 import manageRestaurantRoutes from './routes/manageRestaurant.js';
-import profileRoutes from './routes/profile.js'; // Add this import
+import profileRoutes from './routes/profile.js';
 import restaurantManagementRoutes from './routes/restaurantManagement.js';
+import cartRoutes from './routes/cart.js';
+import orderRoutes from './routes/orderRoutes.js';
+
 dotenv.config();
 const app = express();
 
@@ -23,7 +26,9 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/manage-restaurants', manageRestaurantRoutes);
-app.use('/api/profile', profileRoutes); 
+app.use('/api/profile', profileRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders',orderRoutes);
 
 
 // Add this line with other route imports

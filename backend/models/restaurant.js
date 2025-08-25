@@ -25,6 +25,13 @@ const menuItemSchema = new mongoose.Schema({
   image: {
     type: String // URL to image
   }
+  ,
+  stock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  }
 });
 
 const restaurantSchema = new mongoose.Schema({
