@@ -120,10 +120,10 @@ export const getRestaurantDetails = async (req, res) => {
       }
     }
     
-    // Get menu items from owner
+    // Get menu items from restaurant document
     let menuItems = [];
-    if (restaurant.owner && restaurant.owner.menuItems) {
-      menuItems = restaurant.owner.menuItems.filter(item => item.isAvailable);
+    if (restaurant.menuItems && restaurant.menuItems.length > 0) {
+      menuItems = restaurant.menuItems.filter(item => item.isAvailable);
     }
     
     // Group menu items by category

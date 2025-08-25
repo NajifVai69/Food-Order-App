@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import LoadingSpinner from './common/LoadingSpinner';
 import RestaurantBrowser from './RestaurantBrowser';
+import Cart from './Cart';
 import AdminRestaurantManager from './AdminRestaurantManager';
 import OwnerDashboard from './Owner/OwnerDashboard';
 
@@ -76,6 +77,7 @@ const Dashboard = () => {
                   
                   <div style={{width: '100%'}}>
                     <RestaurantBrowser />
+                    <Cart />
                   </div>
                 </>
               )}

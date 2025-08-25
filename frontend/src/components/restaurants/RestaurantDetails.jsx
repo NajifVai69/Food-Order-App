@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useCart } from '../../context/CartContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { restaurantApi } from '../../api';
 import { useUser } from '../../context/UserContext';
 import StarRating from '../common/StarRating';
 import RatingSystem from './RatingSystem';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { removeFromCart } from '../../../../backend/controllers/cartController';
 
 const RestaurantDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
+  const {addToCart, cart} = useCart();
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -71,6 +74,7 @@ const RestaurantDetails = () => {
       paddingBottom: 'var(--space-32)'
     }}>
       <div className="container">
+  {/* ...existing code... */}
         {/* Header */}
         <div className="restaurant-header card" style={{ marginBottom: 'var(--space-24)' }}>
           <div className="card__body">
@@ -224,60 +228,109 @@ const RestaurantDetails = () => {
                           </h3>
                         )}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-12)' }}>
-                          {menuItems[category].map(item => (
-                            <div 
-                              key={item._id} 
-                              className="menu-item-card"
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-start',
-                                padding: 'var(--space-16)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-md)',
-                                background: 'var(--color-surface)'
-                              }}
-                            >
-                              <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-12)', marginBottom: 'var(--space-8)' }}>
-                                  <h4 style={{ margin: 0, color: 'var(--color-text)' }}>{item.name}</h4>
-                                  <div className={`availability-badge ${item.isAvailable ? 'available' : 'unavailable'}`}>
-                                    {item.isAvailable ? 'Available' : 'Unavailable'}
+                          {menuItems[category].map(item => {
+                            // Find current quantity in cart for this item
+                            const cartItem = cart.items.find(i => String(i.menuItem) === String(item._id));
+                            const quantity = cartItem && Number.isInteger(Number(cartItem.quantity)) ? Number(cartItem.quantity) : 0;
+                            return (
+                              <div 
+                                key={item._id} 
+                                className="menu-item-card"
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'flex-start',
+                                  padding: 'var(--space-16)',
+                                  border: '1px solid var(--color-border)',
+                                  borderRadius: 'var(--radius-md)',
+                                  background: 'var(--color-surface)'
+                                }}
+                              >
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-12)', marginBottom: 'var(--space-8)' }}>
+                                    <h4 style={{ margin: 0, color: 'var(--color-text)' }}>{item.name}</h4>
+                                    <div className={`availability-badge ${item.isAvailable ? 'available' : 'unavailable'}`}>
+                                      {item.isAvailable ? 'Available' : 'Unavailable'}
+                                    </div>
+                                  </div>
+                                  <p style={{ 
+                                    margin: '0 0 var(--space-8) 0', 
+                                    color: 'var(--color-text-secondary)',
+                                    fontSize: 'var(--font-size-sm)'
+                                  }}>
+                                    {item.description}
+                                  </p>
+                                  <div style={{ 
+                                    fontSize: 'var(--font-size-lg)', 
+                                    fontWeight: 'var(--font-weight-bold)',
+                                    color: 'var(--color-success)'
+                                  }}>
+                                    ৳{item.price}
+                                  </div>
+                                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <button 
+                                      onClick={() => {
+                                        if (quantity > 1){
+                                          addToCart(item._id, quantity - 1);
+                                        }else{
+                                          removeFromCart(item._id);
+                                        }
+                                      }}
+                                      disabled={!item.isAvailable || item.stock === 0 || quantity === 0}
+                                      style={{
+                                        background: '#eee',
+                                        color: '#222',
+                                        border: 'none',
+                                        borderRadius: 4,
+                                        padding: '6px 12px',
+                                        cursor: (!item.isAvailable || item.stock === 0 || quantity === 0) ? 'not-allowed' : 'pointer',
+                                        opacity: (!item.isAvailable || item.stock === 0 || quantity === 0) ? 0.6 : 1
+                                      }}
+                                    >
+                                      -
+                                    </button>
+                                    <span style={{ minWidth: 24, textAlign: 'center' }}>{quantity}</span>
+                                    <button 
+                                      onClick={() => addToCart(item._id, quantity + 1)}
+                                      disabled={!item.isAvailable || item.stock === 0 || quantity >= item.stock}
+                                      style={{
+                                        background: 'var(--color-primary)',
+                                        color: 'var(--color-btn-primary-text)',
+                                        border: 'none',
+                                        borderRadius: 4,
+                                        padding: '6px 12px',
+                                        cursor: (!item.isAvailable || item.stock === 0 || quantity >= item.stock) ? 'not-allowed' : 'pointer',
+                                        opacity: (!item.isAvailable || item.stock === 0 || quantity >= item.stock) ? 0.6 : 1
+                                      }}
+                                    >
+                                      +
+                                    </button>
+                                    {item.stock !== undefined && (
+                                      <span style={{ marginLeft: 12, color: '#888', fontSize: 13 }}>
+                                        Stock: {item.stock}
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-                                <p style={{ 
-                                  margin: '0 0 var(--space-8) 0', 
-                                  color: 'var(--color-text-secondary)',
-                                  fontSize: 'var(--font-size-sm)'
-                                }}>
-                                  {item.description}
-                                </p>
-                                <div style={{ 
-                                  fontSize: 'var(--font-size-lg)', 
-                                  fontWeight: 'var(--font-weight-bold)',
-                                  color: 'var(--color-success)'
-                                }}>
-                                  ৳{item.price}
-                                </div>
+                                {item.image && (
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.name}
+                                    style={{
+                                      width: '80px',
+                                      height: '80px',
+                                      objectFit: 'cover',
+                                      borderRadius: 'var(--radius-base)',
+                                      marginLeft: 'var(--space-16)'
+                                    }}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                    }}
+                                  />
+                                )}
                               </div>
-                              {item.image && (
-                                <img 
-                                  src={item.image} 
-                                  alt={item.name}
-                                  style={{
-                                    width: '80px',
-                                    height: '80px',
-                                    objectFit: 'cover',
-                                    borderRadius: 'var(--radius-base)',
-                                    marginLeft: 'var(--space-16)'
-                                  }}
-                                  onError={(e) => {
-                                    e.target.style.display = 'none';
-                                  }}
-                                />
-                              )}
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ))}

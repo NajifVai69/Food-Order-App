@@ -73,14 +73,17 @@ export const addMenuItem = async (req, res) => {
     }
 
     const { restaurantId } = req.params;
-    const { name, description, price, category, image } = req.body;
+    const { name, description, price, category, image, stock } = req.body;
 
-    if (!name || !description || !price || !category) {
-      return res.status(400).json({ message: 'Name, description, price and category are required' });
+    if (!name || !description || !price || !category || stock === undefined) {
+      return res.status(400).json({ message: 'Name, description, price, category, and stock are required' });
     }
 
     if (price <= 0) {
       return res.status(400).json({ message: 'Price must be greater than 0' });
+    }
+    if (stock < 0) {
+      return res.status(400).json({ message: 'Stock must be 0 or greater' });
     }
 
     // Verify owner owns this restaurant
@@ -95,7 +98,8 @@ export const addMenuItem = async (req, res) => {
       price: parseFloat(price),
       category,
       image: image || '',
-      isAvailable: true
+      isAvailable: true,
+      stock: Number(stock) //ensuring stock is saved properly
     };
 
     restaurant.menuItems.push(newMenuItem);
@@ -119,7 +123,7 @@ export const updateMenuItem = async (req, res) => {
     }
 
     const { restaurantId, itemId } = req.params;
-    const { name, description, price, category, isAvailable, image } = req.body;
+    const { name, description, price, category, isAvailable, image, stock } = req.body;
 
     // Verify owner owns this restaurant
     const restaurant = await Restaurant.findOne({ _id: restaurantId, owner: req.user._id });
@@ -139,6 +143,9 @@ export const updateMenuItem = async (req, res) => {
     if (category) menuItem.category = category;
     if (image !== undefined) menuItem.image = image;
     if (isAvailable !== undefined) menuItem.isAvailable = isAvailable;
+    if (stock !== undefined && stock >= 0){
+      menuItem.stock = Number(stock);
+    }
 
     await restaurant.save();
 
