@@ -172,3 +172,38 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
+const calculateOrderStatus = (createdAt) => {
+  const now = new Date();
+  const elapsedMinutes = (now - new Date(createdAt)) / 60000; // time diff in minutes
+
+  if (elapsedMinutes >= 20) return "Delivered";
+  if (elapsedMinutes >= 15) return "On the way";
+  if (elapsedMinutes >= 5) return "Preparing";
+  if (elapsedMinutes >= 0) return "Confirmed";
+  return "Pending";
+};
+
+export const getOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const status = calculateOrderStatus(order.createdAt);
+
+    res.status(200).json({
+      orderId: order._id,
+      status,
+      estimatedDeliveryTime: 20, // in minutes
+      timeElapsed: (new Date() - order.createdAt) / 60000,
+    });
+  } catch (error) {
+    console.error("Error fetching order status", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+

@@ -21,6 +21,12 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ['COD', 'bKash', 'Nagad', 'Card'], required: true },
   status: { type: String, enum: ['Pending', 'Paid', 'Delivered', 'Cancelled'], default: 'Pending' },
   createdAt: { type: Date, default: Date.now },
+  status: { 
+  type: String, 
+  enum: ['Pending', 'Confirmed', 'Preparing', 'On the way', 'Delivered', 'Cancelled'], 
+  default: 'Pending' 
+},
+
 });
 
 export default mongoose.model('Order', orderSchema);

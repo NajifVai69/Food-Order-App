@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
 import LoadingSpinner from './common/LoadingSpinner';
 
+
 const CustomerDashboard = () => {
   const { dashboardData, loading } = useNotifications();
 
@@ -30,6 +31,30 @@ const CustomerDashboard = () => {
       default: return '#f59e0b';
     }
   };
+
+    // Real-time order status logic
+    const getRealtimeStatus = (createdAt) => {
+      const now = new Date();
+      const created = new Date(createdAt);
+      const diffMs = now - created;
+      const diffMin = Math.floor(diffMs / 60000);
+      let status = '';
+      if (diffMin < 5) {
+        status = 'Confirmed';
+      } else if (diffMin < 15) {
+        status = 'Preparing';
+      } else if (diffMin < 20) {
+        status = 'On the way';
+      } else {
+        status = 'Delivered';
+      }
+      const estDelivery = new Date(created.getTime() + 20 * 60000);
+      return { status, estDelivery };
+    };
+
+
+
+  
 
   const styles = {
     container: {
@@ -168,31 +193,37 @@ const CustomerDashboard = () => {
         </div>
 
         {recentOrders && recentOrders.length > 0 ? (
-          recentOrders.map((order) => (
-            <div key={order._id} style={styles.orderItem}>
-              <div style={styles.orderInfo}>
-                <div style={styles.orderName}>
-                  Order #{order._id.slice(-6).toUpperCase()}
+          recentOrders.map((order) => {
+            const { status, estDelivery } = getRealtimeStatus(order.createdAt);
+            return (
+              <div key={order._id} style={styles.orderItem}>
+                <div style={styles.orderInfo}>
+                  <div style={styles.orderName}>
+                    Order #{order._id.slice(-6).toUpperCase()}
+                  </div>
+                  <div style={styles.orderMeta}>
+                    {formatDate(order.createdAt)} • {order.customerName}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#0e7490', marginTop: '0.25rem' }}>
+                    Status: <b>{status}</b> | Est. Delivery: {estDelivery.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
-                <div style={styles.orderMeta}>
-                  {formatDate(order.createdAt)} • {order.customerName}
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div 
+                    style={{
+                      ...styles.orderStatus,
+                      backgroundColor: getStatusColor(status)
+                    }}
+                  >
+                    {status}
+                  </div>
+                  <div style={styles.orderTotal}>
+                    ৳{order.total}
+                  </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <div 
-                  style={{
-                    ...styles.orderStatus,
-                    backgroundColor: getStatusColor(order.status)
-                  }}
-                >
-                  {order.status}
-                </div>
-                <div style={styles.orderTotal}>
-                  ৳{order.total}
-                </div>
-              </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div style={styles.emptyState}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛒</div>
