@@ -7,7 +7,10 @@ import {
   deleteDeliveryAddress,
   addMenuItem,
   updateMenuItem,
-  deleteMenuItem
+  deleteMenuItem,
+  getCustomerDashboard,
+  markNotificationRead,
+  markAllNotificationsRead
 } from '../controllers/profileController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -19,6 +22,13 @@ router.use(protect);
 // Common profile routes for all user types
 router.get('/', getProfile);              // GET /api/profile - Get user profile
 router.put('/', updateProfile);          // PUT /api/profile - Update profile info
+
+
+
+// ✅ ADD ONLY THESE NEW DASHBOARD ROUTES
+router.get('/dashboard', getCustomerDashboard);                          // GET /api/profile/dashboard
+router.patch('/notifications/:notificationId/read', markNotificationRead); // PATCH /api/profile/notifications/:id/read
+router.patch('/notifications/mark-all-read', markAllNotificationsRead);    // PATCH /api/profile/notifications/mark-all-read
 
 // Customer-specific routes for address management
 router.post('/addresses', addDeliveryAddress);         // POST /api/profile/addresses

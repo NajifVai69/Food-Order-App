@@ -1,4 +1,14 @@
 import User from '../models/user.js';
+import {
+  getUserNotifications,
+  getLatestOrderNotification,
+  getUnreadNotificationsCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead
+} from './notificationController.js';
+import Order from '../models/order.js';        // ✅ ADD THIS LINE
+import Notification from '../models/notification.js';  // ✅ ADD THIS LINE TOO
+
 
 // Get user profile
 const getProfile = async (req, res) => {
@@ -355,13 +365,116 @@ const deleteMenuItem = async (req, res) => {
   }
 };
 
-export {
-  getProfile,
-  updateProfile,
-  addDeliveryAddress,
-  updateDeliveryAddress,
-  deleteDeliveryAddress,
-  addMenuItem,
-  updateMenuItem,
-  deleteMenuItem
+
+
+
+
+// Get customer dashboard with notifications
+const getCustomerDashboard = async (req, res) => {
+  try {
+    if (req.user.userType !== 'Customer') {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Access denied. Customers only.' 
+      });
+    }
+
+    const userId = req.user._id;
+    
+    // Get recent orders
+    const recentOrders = await Order.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+    
+    // Get latest order notification using notification controller
+    const latestNotificationResult = await getLatestOrderNotification(userId);
+    
+    // Get unread notifications using notification controller
+    const unreadNotificationsResult = await getUserNotifications(userId, 10);
+    const unreadCountResult = await getUnreadNotificationsCount(userId);
+    
+    res.json({
+      success: true,
+      message: 'Dashboard data fetched successfully',
+      data: {
+        user: {
+          name: req.user.name,
+          email: req.user.email,
+          phone: req.user.phone,
+          userType: req.user.userType
+        },
+        recentOrders,
+        latestOrderNotification: latestNotificationResult.notification,
+        unreadNotifications: unreadNotificationsResult.notifications || [],
+        stats: {
+          totalOrders: recentOrders.length,
+          unreadNotifications: unreadCountResult.unreadCount || 0
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Customer dashboard error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to load dashboard data' 
+    });
+  }
 };
+
+// Handle notification read status
+const markNotificationRead = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const userId = req.user._id;
+
+    const result = await markNotificationAsRead(notificationId, userId);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Mark notification read error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to mark notification as read' 
+    });
+  }
+};
+
+// Handle mark all notifications as read
+const markAllNotificationsRead = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const result = await markAllNotificationsAsRead(userId);
+
+    res.json(result);
+  } catch (error) {
+    console.error('Mark all notifications read error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to mark all notifications as read' 
+    });
+  }
+};
+
+// Don't forget to add the new exports at the bottom of your file:
+export { 
+  getProfile, 
+  updateProfile, 
+  addDeliveryAddress, 
+  updateDeliveryAddress, 
+  deleteDeliveryAddress, 
+  addMenuItem, 
+  updateMenuItem, 
+  deleteMenuItem,
+  // Add these new exports
+  getCustomerDashboard,
+  markNotificationRead,
+  markAllNotificationsRead
+};
+
+

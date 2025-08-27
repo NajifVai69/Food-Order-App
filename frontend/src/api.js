@@ -63,4 +63,34 @@ export const restaurantManagementApi = {
 };
 
 
+// Notification API functions
+export const notificationApi = {
+  // Get dashboard data (includes notifications)
+  getDashboard: () => api.get('/profile/dashboard'),
+  
+  // Mark notification as read
+  markAsRead: (notificationId) => api.patch(`/profile/notifications/${notificationId}/read`),
+  
+  // Mark all notifications as read
+  markAllAsRead: () => api.patch('/profile/notifications/mark-all-read')
+};
+
+// Add these order management functions for owners
+export const orderApi = {
+  // Get all orders (admin)
+  getAllOrders: () => api.get('/orders'),
+  
+  // Get orders for owner's restaurants
+  getOwnerOrders: () => api.get('/orders/owner'),
+  
+  // Update order status
+  updateOrderStatus: (orderId, status) => 
+    api.patch(`/orders/${orderId}/status`, { status }),
+  
+  // Get orders for specific user
+  getUserOrders: (userId) => api.get(`/orders/user/${userId}`)
+};
+
+
+
 export default api;

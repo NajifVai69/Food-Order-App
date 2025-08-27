@@ -10,39 +10,42 @@ import AdminRestaurantPage from './components/AdminRestaurantPage';
 import RestaurantDetails from './components/restaurants/RestaurantDetails';
 import RestaurantMenuManager from './components/Owner/RestaurantMenuManager';
 import CheckoutPage from './components/CheckoutPage';
-
+import { NotificationProvider } from './context/NotificationContext';
 const App = () => {
   return (
     <UserProvider>
       <CartProvider>
-        <Router>
-          <Link to="/dashboard" className="brand-header" style={{ textDecoration: 'none', color: 'inherit' }}>
-            Food Order Application
-          </Link>
-          <Routes>
-            {/* Redirect root to login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+        <NotificationProvider>
+          <Router>
+            <Link to="/dashboard" className="brand-header" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Food Order Application
+            </Link>
+            <Routes>
+              {/* Redirect root to login */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
             
-            {/* Auth routes */}
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
+             {/* Auth routes */}
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login />} />
             
-            {/* Protected routes */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/manage-restaurants" element={<AdminRestaurantPage />} />
+              {/* Protected routes */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/manage-restaurants" element={<AdminRestaurantPage />} />
             
-            {/* Restaurant routes */}
-            <Route path="/restaurant/:id" element={<RestaurantDetails />} />
-            <Route path='/checkout' element={<CheckoutPage/>}/>
+              {/* Restaurant routes */}
+              <Route path="/restaurant/:id" element={<RestaurantDetails />} />
+              <Route path='/checkout' element={<CheckoutPage/>}/>
             
-            {/* Owner routes */}
-            <Route path="/owner/restaurant/:restaurantId/menu" element={<RestaurantMenuManager />} />
+              {/* Owner routes */}
+              <Route path="/owner/restaurant/:restaurantId/menu" element={<RestaurantMenuManager />} />
             
-            {/* Catch all - redirect to login */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </Router>
+              {/* Catch all - redirect to login */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Router>
+
+        </NotificationProvider>
       </CartProvider>
     </UserProvider>
   );

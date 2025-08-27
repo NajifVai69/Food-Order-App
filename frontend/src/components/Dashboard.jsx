@@ -6,6 +6,8 @@ import RestaurantBrowser from './RestaurantBrowser';
 import Cart from './Cart';
 import AdminRestaurantManager from './AdminRestaurantManager';
 import OwnerDashboard from './Owner/OwnerDashboard';
+import CustomerDashboard from './CustomerDashboard'; // ✅ ADD THIS
+import NotificationBell from './notifications/NotificationBell'; // ✅ ADD THIS
 
 const Dashboard = () => {
   const { user, loading, logout } = useUser();
@@ -42,6 +44,9 @@ const Dashboard = () => {
           </div>
           
           <div className="user-actions">
+            {/* ✅ ADD NOTIFICATION BELL FOR CUSTOMERS */}
+            {user.userType === 'Customer' && <NotificationBell />}
+            
             <Link to="/profile" className="btn-primary">
               My Profile
             </Link>
@@ -52,8 +57,12 @@ const Dashboard = () => {
         </div>
 
         <div className="dashboard-content">
+          {/* ✅ ADD CUSTOMER DASHBOARD */}
+          {user.userType === 'Customer' && <CustomerDashboard />}
+          
           <p>You are now logged in to the Food Ordering Application. Here you can manage your food orders and account.</p>
           
+          {/* Rest of your existing dashboard content... */}
           <div className="quick-actions">
             <h3>Quick Actions</h3>
             <div className="action-grid">
@@ -94,12 +103,8 @@ const Dashboard = () => {
                   
                   <div>
                     <OwnerDashboard/>
-
                   </div>
-                
                 </>
-                
-
               )}
 
               {user.userType === 'Admin' && (
@@ -116,27 +121,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Profile Completion Reminder */}
-          {(!user.name || (user.userType === 'Customer' && user.deliveryAddresses?.length === 0) || 
-            (user.userType === 'Owner' && (!user.restaurantName || user.menuItems?.length === 0))) && (
-            <div className="profile-reminder">
-              <h3>⚠️ Complete Your Profile</h3>
-              <p>Your profile is incomplete. Complete it to get the most out of our platform:</p>
-              <ul>
-                {!user.name && <li>Add your full name</li>}
-                {user.userType === 'Customer' && user.deliveryAddresses?.length === 0 && (
-                  <li>Add at least one delivery address</li>
-                )}
-                {user.userType === 'Owner' && !user.restaurantName && (
-                  <li>Add your restaurant name and description</li>
-                )}
-                {user.userType === 'Owner' && user.menuItems?.length === 0 && (
-                  <li>Add menu items to your restaurant</li>
-                )}
-              </ul>
-              <Link to="/profile" className="btn-primary">Complete Profile</Link>
-            </div>
-          )}
+          {/* Profile Completion Reminder - Your existing code */}
         </div>
       </div>
     </div>

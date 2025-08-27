@@ -4,6 +4,10 @@ const orderSchema = new mongoose.Schema({
   customerName: { type: String, required: true },
   customerPhone: { type: String, required: true },
   customerEmail: { type: String },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   items: [
     {
       menuItem: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem', required: true },
