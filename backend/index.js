@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 app.use(cors({
   //origin: ['http://localhost:5173','https://food-order-app-3fbj-git-main-nazifs-projects-289e8cd8.vercel.app/'],
-  origin: ['http://localhost:5173','http://localhost:3000','food-order-app-3fbj-o64623clh-nazifs-projects-289e8cd8.vercel.app'],
+  origin: 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
