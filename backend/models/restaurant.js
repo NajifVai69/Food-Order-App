@@ -91,7 +91,7 @@ const restaurantSchema = new mongoose.Schema({
 // Rating methods (keep existing)
 restaurantSchema.methods.updateRating = function(newRating, oldRating = null) {
   if (oldRating) {
-    this.ratingBreakdown[oldRating]--;
+    this.ratingBreakdown[oldRating]--;//ager rating bad jehetu update
     this.ratingBreakdown[newRating]++;
   } else {
     this.ratingBreakdown[newRating]++;
@@ -101,7 +101,7 @@ restaurantSchema.methods.updateRating = function(newRating, oldRating = null) {
   let totalScore = 0;
   let totalCount = 0;
   for (let star = 1; star <= 5; star++) {
-    totalScore += star * this.ratingBreakdown[star];
+    totalScore += star * this.ratingBreakdown[star];//total rating
     totalCount += this.ratingBreakdown[star];
   }
 
