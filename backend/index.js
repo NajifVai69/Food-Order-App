@@ -18,7 +18,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  //origin: 'http://localhost:5173',
+  origin: 'https://food-order-app-production-7604.up.railway.app/',
   credentials: true,
 }));
 
