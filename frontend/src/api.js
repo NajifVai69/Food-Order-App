@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'food-order-app-production-7604.up.railway.app/api' || 'http://localhost:5000/api',
+  baseURL:'http://localhost:5000/api',
+  //baseURL: 'food-order-app-production-7604.up.railway.app/api' || 'http://localhost:5000/api',
   withCredentials: true, // Important for cookie-based authentication
 });
 
