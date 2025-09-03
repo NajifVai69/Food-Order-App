@@ -18,9 +18,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  //origin: 'http://localhost:5173',
-  origin: 'https://food-order-app-production-7604.up.railway.app/',
+  origin: ['http://localhost:5173','http://localhost:3000',process.env.FRONTEND_URL,'food-order-app-git-main-nazifs-projects-289e8cd8.vercel.app'],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
 // Routes
